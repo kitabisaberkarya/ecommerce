@@ -1,0 +1,26 @@
+# Go
+ecommerce-api/bin/
+ecommerce-api/*.exe
+ecommerce-api/tmp/
+ecommerce-api/uploads/
+ecommerce-api/coverage.out
+
+# Environment variables (JANGAN pernah di-commit)
+ecommerce-api/.env
+ecommerce-web/.env
+ecommerce-web/.env.local
+ecommerce-web/.env.production
+
+# Node
+ecommerce-web/node_modules/
+ecommerce-web/dist/
+ecommerce-web/.vite/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/settings.json
+*.swp
