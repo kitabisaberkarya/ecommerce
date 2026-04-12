@@ -2,8 +2,6 @@
   "version": 2,
   "buildCommand": "cd ecommerce-web && npm install && npm run build",
   "outputDirectory": "ecommerce-web/dist",
-  "installCommand": "cd ecommerce-web && npm install",
-  "framework": "vite",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
