@@ -2,7 +2,11 @@
   "version": 2,
   "buildCommand": "cd ecommerce-web && npm install && npm run build",
   "outputDirectory": "ecommerce-web/dist",
+  "env": {
+    "VITE_API_BASE_URL": "/api/v1"
+  },
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
