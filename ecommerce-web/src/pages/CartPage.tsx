@@ -1,35 +1,16 @@
-import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useGetCartQuery, useUpdateCartItemMutation, useRemoveCartItemMutation } from '../api/cartApi';
-import { setCart } from '../features/cart/cartSlice';
+import { updateItemQuantity, removeItem } from '../features/cart/cartSlice';
 import type { RootState } from '../app/store';
 
 export default function CartPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((s: RootState) => s.auth);
-  const { data, refetch } = useGetCartQuery();
-  const [updateItem] = useUpdateCartItemMutation();
-  const [removeItem] = useRemoveCartItemMutation();
-
-  useEffect(() => {
-    if (data?.data) dispatch(setCart(data.data));
-  }, [data, dispatch]);
-
-  const cart = data?.data;
+  const cart = useSelector((s: RootState) => s.cart.cart);
   const items = cart?.items ?? [];
 
   const subtotal = items.reduce((sum, item) => sum + (item.variant?.price ?? 0) * item.quantity, 0);
-
-  const handleQtyChange = async (itemId: string, qty: number) => {
-    if (qty <= 0) {
-      await removeItem(itemId);
-    } else {
-      await updateItem({ item_id: itemId, quantity: qty });
-    }
-    refetch();
-  };
 
   if (items.length === 0) {
     return (
@@ -51,17 +32,18 @@ export default function CartPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">Keranjang Belanja</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">Keranjang Belanja</h1>
+      <p className="text-sm text-gray-500 mb-6">{items.length} produk dipilih</p>
+
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Items */}
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-3">
           {items.map((item) => (
-            <div key={item.id} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4">
-              {/* Image */}
-              <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden shrink-0">
-                {item.variant?.images?.[0] || item.product?.images?.[0] ? (
-                  <img src={item.variant?.images?.[0] || item.product?.images?.[0]} alt={item.product?.name}
-                    className="w-full h-full object-cover" />
+            <div key={item.id} className="bg-white rounded-xl border border-gray-100 p-4 flex gap-4 shadow-sm">
+              <Link to={`/products/${item.product_id}`} className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden shrink-0 block">
+                {(item.variant?.images?.[0] ?? item.product?.images?.[0]) ? (
+                  <img src={item.variant?.images?.[0] ?? item.product?.images?.[0]}
+                    alt={item.product?.name} className="w-full h-full object-cover hover:scale-105 transition-transform" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-300">
                     <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,30 +52,38 @@ export default function CartPage() {
                     </svg>
                   </div>
                 )}
-              </div>
+              </Link>
 
-              <div className="flex-1">
-                <p className="font-medium text-gray-900 text-sm leading-snug">{item.product?.name}</p>
+              <div className="flex-1 min-w-0">
+                <Link to={`/products/${item.product_id}`}
+                  className="font-medium text-gray-900 text-sm leading-snug line-clamp-2 hover:text-indigo-600">
+                  {item.product?.name}
+                </Link>
                 {item.variant?.name && (
-                  <p className="text-xs text-gray-500 mt-0.5">{item.variant.name}</p>
+                  <span className="inline-block mt-1 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">
+                    {item.variant.name}
+                  </span>
                 )}
-                <p className="text-indigo-700 font-semibold mt-2">
+                <p className="text-indigo-700 font-bold mt-2 text-sm">
                   {formatIDR(item.variant?.price ?? 0)}
                 </p>
               </div>
 
-              <div className="flex flex-col items-end justify-between">
-                <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500">
+              <div className="flex flex-col items-end justify-between shrink-0">
+                <button onClick={() => dispatch(removeItem(item.id))}
+                  className="text-gray-300 hover:text-red-500 transition-colors p-1">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
                 <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                  <button onClick={() => handleQtyChange(item.id, item.quantity - 1)}
-                    className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-lg">−</button>
-                  <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
-                  <button onClick={() => handleQtyChange(item.id, item.quantity + 1)}
-                    className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-lg">+</button>
+                  <button
+                    onClick={() => dispatch(updateItemQuantity({ itemId: item.id, quantity: item.quantity - 1 }))}
+                    className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-lg font-medium">−</button>
+                  <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
+                  <button
+                    onClick={() => dispatch(updateItemQuantity({ itemId: item.id, quantity: item.quantity + 1 }))}
+                    className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-lg font-medium">+</button>
                 </div>
               </div>
             </div>
@@ -102,30 +92,44 @@ export default function CartPage() {
 
         {/* Summary */}
         <div className="lg:w-80 shrink-0">
-          <div className="bg-white rounded-xl border border-gray-100 p-6 sticky top-20">
-            <h3 className="font-semibold text-gray-900 mb-4">Ringkasan</h3>
+          <div className="bg-white rounded-xl border border-gray-100 p-6 sticky top-20 shadow-sm">
+            <h3 className="font-semibold text-gray-900 mb-4">Ringkasan Belanja</h3>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal ({items.length} produk)</span>
-                <span>{formatIDR(subtotal)}</span>
+                <span className="font-medium">{formatIDR(subtotal)}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Ongkir</span>
-                <span className="text-green-600">Dihitung saat checkout</span>
+              <div className="flex justify-between text-gray-500">
+                <span>Ongkos Kirim</span>
+                <span className="text-green-600 font-medium">Pilih di checkout</span>
               </div>
-              <hr className="my-3" />
+              <hr />
               <div className="flex justify-between font-bold text-gray-900 text-base">
-                <span>Total</span>
-                <span>{formatIDR(subtotal)}</span>
+                <span>Total Sementara</span>
+                <span className="text-indigo-700">{formatIDR(subtotal)}</span>
               </div>
             </div>
+
+            {/* Trust badges */}
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              {[
+                { icon: '🔒', text: 'Transaksi\nAman' },
+                { icon: '🛡️', text: 'Pembeli\nDilindungi' },
+                { icon: '↩️', text: 'Garansi\nReturn' },
+              ].map(b => (
+                <div key={b.text} className="text-center p-2 bg-gray-50 rounded-lg">
+                  <div className="text-lg">{b.icon}</div>
+                  <p className="text-xs text-gray-500 mt-0.5 whitespace-pre-line leading-tight">{b.text}</p>
+                </div>
+              ))}
+            </div>
+
             <button
               onClick={() => isAuthenticated ? navigate('/checkout') : navigate('/login', { state: { from: '/checkout' } })}
-              className="w-full mt-6 bg-indigo-600 text-white font-semibold py-3 rounded-xl hover:bg-indigo-700 transition-colors"
-            >
+              className="w-full mt-5 bg-indigo-600 text-white font-semibold py-3 rounded-xl hover:bg-indigo-700 transition-colors">
               Lanjut ke Checkout
             </button>
-            <Link to="/products" className="block text-center text-sm text-gray-500 hover:text-indigo-600 mt-3">
+            <Link to="/products" className="block text-center text-sm text-gray-400 hover:text-indigo-600 mt-3">
               ← Lanjut Belanja
             </Link>
           </div>

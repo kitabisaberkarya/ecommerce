@@ -4,12 +4,15 @@ import MainLayout from './components/layout/MainLayout';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 // Lazy-loaded pages for code splitting
-const HomePage      = lazy(() => import('./pages/HomePage'));
-const ProductsPage  = lazy(() => import('./pages/ProductsPage'));
-const LoginPage     = lazy(() => import('./pages/LoginPage'));
-const RegisterPage  = lazy(() => import('./pages/RegisterPage'));
-const CartPage      = lazy(() => import('./pages/CartPage'));
-const OrdersPage    = lazy(() => import('./pages/OrdersPage'));
+const HomePage         = lazy(() => import('./pages/HomePage'));
+const ProductsPage     = lazy(() => import('./pages/ProductsPage'));
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
+const LoginPage        = lazy(() => import('./pages/LoginPage'));
+const RegisterPage     = lazy(() => import('./pages/RegisterPage'));
+const CartPage         = lazy(() => import('./pages/CartPage'));
+const CheckoutPage     = lazy(() => import('./pages/CheckoutPage'));
+const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage'));
+const OrdersPage       = lazy(() => import('./pages/OrdersPage'));
 
 function PageLoader() {
   return (
@@ -25,13 +28,16 @@ export default function App() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route element={<MainLayout />}>
-            <Route path="/"         element={<HomePage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/cart"     element={<CartPage />} />
-            <Route path="/login"    element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/orders"   element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
-            <Route path="*"         element={<Navigate to="/" replace />} />
+            <Route path="/"                   element={<HomePage />} />
+            <Route path="/products"           element={<ProductsPage />} />
+            <Route path="/products/:idOrSlug" element={<ProductDetailPage />} />
+            <Route path="/cart"               element={<CartPage />} />
+            <Route path="/checkout"           element={<CheckoutPage />} />
+            <Route path="/order-success"      element={<OrderSuccessPage />} />
+            <Route path="/login"              element={<LoginPage />} />
+            <Route path="/register"           element={<RegisterPage />} />
+            <Route path="/orders"             element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+            <Route path="*"                   element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
       </Suspense>
